@@ -5,7 +5,7 @@ What is this Kodi Plugin?<br />
 The ProDVD player is a Kodi plugin that is created for the ProDVD server on the Samsung SE-208BW.
 As the Network DVD drive is obsolete there is no real up to date method to play Movies over the network. This attempts to solve this.
 
-So it is solely for the Samsung SE-208BW.<br />
+So is this plugin solely for the Samsung SE-208BW?<br />
 It may work with other devices that run an instance of the ProDVD server, but a few modifications may be needed.
 
 What is ProDVD?<br />
