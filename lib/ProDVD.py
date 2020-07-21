@@ -2,15 +2,19 @@
 
 import urlparse, re, upnpd
 
+#make the SOAP call to the server
+def serverCall(UUID, url, dir, URN, action, soap_body = ""):
+    return upnpd.SOAPCall( urlparse.urlparse( url ).scheme + "://" + urlparse.urlparse( url ).netloc, "/" + dir + "/" + UUID + "/control.xml", URN, action, soap_body )
+
 #calls to the 3 different UPNP server instances
 def contentServerCall(UUID, url, action, soap_body = ""):
-    return upnpd.SOAPCall( urlparse.urlparse( url ).scheme + "://" + urlparse.urlparse( url ).netloc, "/ProDVDContentDirectory/" + UUID + "/control.xml", "urn:schemas-upnp-org:service:ProDVDContentDirectory:1", action, soap_body )
+    return serverCall( UUID, url, "ProDVDContentDirectory", "urn:schemas-upnp-org:service:ProDVDContentDirectory:1", action, soap_body )
 
 def connectionManagerServerCall(UUID, url, action, soap_body = ""):
-    return upnpd.SOAPCall( urlparse.urlparse( url ).scheme + "://" + urlparse.urlparse( url ).netloc, "/ProDVDConnectionManager/" + UUID + "/control.xml", "urn:schemas-upnp-org:service:ProDVDConnectionManager:1", action, soap_body )
+    return serverCall( UUID, url, "ProDVDConnectionManager", "urn:schemas-upnp-org:service:ProDVDConnectionManager:1", action, soap_body )
 
 def dvdManagerServerCall(UUID, url, action, soap_body = ""):
-    return upnpd.SOAPCall( urlparse.urlparse( url ).scheme + "://" + urlparse.urlparse( url ).netloc, "/DvdManager/" + UUID + "/control.xml", "urn:schemas-upnp-org:service:DvdManager:1", action, soap_body )
+    return serverCall( UUID, url, "DvdManager", "urn:schemas-upnp-org:service:DvdManager:1", action, soap_body )
 
 
 #=content server calls=
@@ -27,7 +31,7 @@ def browse(UUID, url):
 
     return contentServerCall(UUID, url, "Browse", upnpd.argsXML(args))
 
-def getSortCapabilities
+def getSortCapabilities(UUID, url):
     return contentServerCall(UUID, url, "GetSortCapabilities")
 
 def getSystemUpdateID(UUID, url):
@@ -37,7 +41,16 @@ def getSearchCapabilities(UUID, url):
     return contentServerCall(UUID, url, "GetSearchCapabilities")
 
 def search(UUID, url):
-    return contentServerCall(UUID, url, "Search")
+    args = {
+        "ObjectID": "0/video_ts",
+        "BrowseFlag": "BrowseDirectChildren",
+        "Filter": "",
+        "StartingIndex": "0",
+        "RequestedCount": "0",
+        "SortCriteria": ""
+    }
+
+    return contentServerCall(UUID, url, "Search", upnpd.argsXML(args))
 
 
 #=connection manager server calls=
