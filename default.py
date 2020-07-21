@@ -1,7 +1,8 @@
 import sys, os, re
 import urlparse
 import xbmc,xbmcaddon,xbmcgui,xbmcplugin
-from lib import telnet_control, upnpd
+import urllib
+from lib import telnet_control, upnpd, ProDVD
 from addon.common.addon import Addon
 
 addon_id='plugin.video.prodvd'
@@ -59,26 +60,27 @@ def ProDVD_play( url ):
 
     UUID = upnpd.UUIDGet(upnpd.XmlGet(url))
     if UUID != False:
-        soap_body = '''<?xml version="1.0" encoding="utf-8"?>
-<s:Envelope xmlns:s="http://schemas.xmlsoap.org/soap/envelope/" s:encodingStyle="http://schemas.xmlsoap.org/soap/encoding/">
-<s:Body>
-<u:Browse xmlns:u="urn:schemas-upnp-org:service:ProDVDContentDirectory:1"><ObjectID>0/video_ts</ObjectID><BrowseFlag>BrowseDirectChildren</BrowseFlag><Filter></Filter><StartingIndex>0</StartingIndex><RequestedCount>0</RequestedCount><SortCriteria></SortCriteria></u:Browse>
-</s:Body>
-</s:Envelope>'''
-        Soap = upnpd.SOAPCall( urlparse.urlparse( url ).scheme + "://" + urlparse.urlparse( url ).netloc, "/ProDVDContentDirectory/" + UUID + "/control.xml", "Browse", soap_body )
-        match = re.findall('(' + urlparse.urlparse( url ).scheme + "://" + urlparse.urlparse( url ).netloc + '[^"]+.vob)', Soap)
+
+        dvd_title = ProDVD.getMediaName(UUID, url)
+
+        soap = ProDVD.browse(UUID, url)
+        match = re.findall('(' + urlparse.urlparse( url ).scheme + "://" + urlparse.urlparse( url ).netloc + '[^"]+.vob)', soap)
         if match:
-            playlist_create(match)
-            xbmc.log("ProDVD_play RAN!!!!!!")
+            #check 2nd url, as the first track usually at least returns something
+            if urllib.urlopen(match[2]).getcode() == 200:
+                playlist_create(dvd_title, match)
+                xbmc.log("ProDVD_play RAN!!!!!!")
+            else :
+                xbmc.log("Method failed, attempting via soap (Experimental)")
     return UUID
 
-def playlist_create( list ):
+def playlist_create( dvd_title, list ):
     playlist = xbmc.PlayList(xbmc.PLAYLIST_VIDEO)
     playlist.clear()
     for url in list:
-        listitem = xbmcgui.ListItem("Movie")
-        listitem.setInfo( type="Video", infoLabels={ "Title": "Movie" } )
-        playlist.add(url)
+        listitem = xbmcgui.ListItem(dvd_title)
+        listitem.setInfo( type="Video", infoLabels={ "Title": dvd_title } )
+        playlist.add(url, listitem)
 
     xbmcPlayer = xbmc.Player()
     xbmcPlayer.play(playlist)
