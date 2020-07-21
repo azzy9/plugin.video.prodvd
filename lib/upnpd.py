@@ -19,9 +19,11 @@ import xbmc
 from urlparse import urlparse
 
 class SSDPResponse(object):
+
     class _FakeSocket(StringIO.StringIO):
         def makefile(self, *args, **kw):
             return self
+
     def __init__(self, response):
         r = httplib.HTTPResponse(self._FakeSocket(response))
         r.begin()
@@ -30,6 +32,7 @@ class SSDPResponse(object):
         self.usn = r.getheader("usn")
         self.st = r.getheader("st")
         self.cache = r.getheader("cache-control").split("=")[1]
+
     def __repr__(self):
         return "<SSDPResponse({location}, {st}, {usn})>".format(**self.__dict__)
 
@@ -70,18 +73,32 @@ def UUIDGet(xml):
 
     return False;
 
-def SOAPCall( host, path, action, soap_body ):
-    soap_action = "urn:schemas-upnp-org:service:ProDVDContentDirectory:1#" + action
+#convert an assoc array to xml
+def argsXML( args ):
+    xml = "";
+    for key in args.keys():
+        xml += "<" + key + ">" + args[key] + "</" + key + ">"
+    return xml
+
+#make a soap call
+def SOAPCall( host, path, urn, action, soap_body = "" ):
+
+    soap_body = '''<?xml version="1.0" encoding="utf-8"?>
+<s:Envelope xmlns:s="http://schemas.xmlsoap.org/soap/envelope/" s:encodingStyle="http://schemas.xmlsoap.org/soap/encoding/">
+<s:Body><u:''' + action + ''' xmlns:u="''' + urn + '''">''' + soap_body + '''</u:''' + action + '''></s:Body>
+</s:Envelope>'''
 
     headers = {
         'POST': path + " HTTP/1.1",
-        'SOAPACTION': soap_action,
+        'SOAPACTION': urn + "#" + action,
         'Content-Length': len(soap_body),
         'Content-Type': 'text/xml',
         'Content-Encoding': 'utf-8',
         'HOST': host,
         'Connection': 'Keep-Alive',
     }
+
+    xbmc.log(soap_body)
     xbmc.log(host + path)
     request = urllib2.Request(host + path, soap_body, headers)
     response = urllib2.urlopen(request)
