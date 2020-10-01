@@ -96,7 +96,7 @@ def setPlayerRegion(UUID, url, RegionNum = "2"):
         "RegionNum": RegionNum
     }
 
-    return dvdManagerServerCall(UUID, url, "SetPlayerRegion")
+    return dvdManagerServerCall(UUID, url, "SetPlayerRegion", upnpd.argsXML(args))
 
 #this is the method we need to look at to get the dvd's data
 def readDataByFileOffset(UUID, url, FileID = "0/video_ts/video_ts.vob", startSector = "0", endSector = "2"):
