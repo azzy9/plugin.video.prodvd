@@ -15,11 +15,22 @@ ICON       = ADDON.getAddonInfo('icon')
 FANART     = ADDON.getAddonInfo('fanart')
 VERSION    = ADDON.getAddonInfo('version')
 
-device_model = "[ODD] SmartHub 208BW";
+device_model = "[ODD] SmartHub 208BW"
 ProDVDServer = False
+
+ProDVDServerTest = False
+#ProDVDServerTest = True
+
+#params being set
+params = dict(urlparse.parse_qsl(sys.argv[2].replace('?','')))
+action = params.get('action')
+fileid = params.get('fileid')
 
 #method to start a ProDVD server
 def ProDVD_start():
+
+    #initiate ProDVDServer
+    ProDVDServer = False
 
     #use SDPP to find a server to start
     xbmc.log("Starting UPNP search")
@@ -64,26 +75,48 @@ def ProDVD_play( url ):
         dvd_title = ProDVD.getMediaName(UUID, url)
 
         soap = ProDVD.browse(UUID, url)
-        match = re.findall('(' + urlparse.urlparse( url ).scheme + "://" + urlparse.urlparse( url ).netloc + '[^"]+.vob)', soap)
+        match = re.findall('item(?:\s+)id="(?P<fileid>[^"]+)"(?:(?:.|\n|\r)+?)(?P<url>' + urlparse.urlparse( url ).scheme + "://" + urlparse.urlparse( url ).netloc + '[^"]+.vob)', soap)
         if match:
-            #check 2nd url, as the first track usually at least returns something
-            if urllib.urlopen(match[2]).getcode() == 200:
-                playlist_create(dvd_title, match)
-                xbmc.log("ProDVD_play RAN!!!!!!")
-            else :
-                xbmc.log("Method failed, attempting via soap (Experimental)")
+            xbmc.log(dvd_title)
+            playlist_create(dvd_title, match)
+            xbmc.log("ProDVD_play RAN!!!!!!")
+
     return UUID
 
 def playlist_create( dvd_title, list ):
     playlist = xbmc.PlayList(xbmc.PLAYLIST_VIDEO)
     playlist.clear()
-    for url in list:
+    for fileid, url in list:
         listitem = xbmcgui.ListItem(dvd_title)
         listitem.setInfo( type="Video", infoLabels={ "Title": dvd_title } )
-        playlist.add(url, listitem)
+        if ProDVDServerTest == True :
+            url = "plugin://" + addon_id + "/?action=play_file&fileid=" + fileid
+            xbmc.executebuiltin('RunPlugin(%s)' % url)
+            return
+
+        playlist.add( urllib.unquote_plus( url ), listitem)
 
     xbmcPlayer = xbmc.Player()
     xbmcPlayer.play(playlist)
+
+def play_file( fileid ):
+    xbmc.log("Play File Test Start")
+    ProDVDServer = ProDVD_find()
+
+    if ProDVDServer == False:
+        ProDVD_start()
+        #let's try this again
+        #increase retries as server just started
+        #may need some time to warm up
+        ProDVDServer = ProDVD_find(3)
+    if ProDVDServer == False:
+        #oh no!
+        xbmc.log("ProDVD server can not be found / started")
+    else:
+        UUID = upnpd.UUIDGet(upnpd.XmlGet(ProDVDServer))
+        if UUID != False:
+            sectors = ProDVD.readDataByFileOffset(UUID, ProDVDServer, fileid, "0", "10")
+            xbmc.log(sectors)
 
 def main():
     ProDVDServer = ProDVD_find()
@@ -101,5 +134,8 @@ def main():
         #all is fine now, phew
         ProDVD_play(ProDVDServer)
 
-#let's start
-main()
+if action == None:
+    #let's start
+    main()
+elif action == 'play_file':
+    play_file( urllib.unquote_plus( fileid ) )
