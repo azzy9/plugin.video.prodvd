@@ -15,5 +15,7 @@ ProDVD (http://www.prodvd.net) is an old method to play DVD’s over UPNP.
 Unfortunately, this works by creating a playlist of the .vob files and when it changes from one file to another, it will freeze for a second while it tries to run a new file. As far as I know Kodi does not offer a way to precache the next file.
 
 <b>This will not play [insert dvd name here] DVD?</b><br />
-The ProDVD server is old and newer Movies (Especially Disney DVD’s) do not like to seem to play.
-This seems to be due to the server, and not the plugin. If anybody can find a work around I would be gracious for the help
+The ProDVD server is old and newer Movies (Especially Disney DVD’s) do not like to seem to play directly via the .vob file.
+Newer movies seem to return a blank .vob file.
+I believe that this may be overcome via the "readDataByFileOffset" UPNP method.
+If anybody can help with this I would be very grateful.
