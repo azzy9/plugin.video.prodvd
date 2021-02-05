@@ -1,9 +1,10 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <addon id="plugin.video.prodvd" name="ProDVD Player" version="1.0.1" provider-name="azzy9">
   <requires>
-    <import addon="xbmc.python" version="2.1.0"/>
+    <!-- <import addon="xbmc.python" version="3.0.0" /> -->
     <import addon="script.module.addon.common" />
     <import addon="script.module.requests" />
+	<import addon="script.module.six"/>
   </requires>
   <extension point="xbmc.python.pluginsource" library="default.py">
     <provides>video</provides>
@@ -13,5 +14,8 @@
     <description lang="en">Player for the Samsung SE-208BW ProDVD server</description>
     <disclaimer lang="en"></disclaimer>
     <platform>all</platform>
+	<assets>
+		<icon>icon.png</icon>
+    </assets>
   </extension>
 </addon>
