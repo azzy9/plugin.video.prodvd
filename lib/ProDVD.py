@@ -1,10 +1,13 @@
 #ProDVD - methods to make SOAP calls to the ProDVD UPNP servers
 
-import urlparse, re, upnpd
+import six, re
+
+from lib import upnpd
+from six.moves import urllib_parse
 
 #make the SOAP call to the server
 def serverCall(UUID, url, dir, URN, action, soap_body = ""):
-    return upnpd.SOAPCall( urlparse.urlparse( url ).scheme + "://" + urlparse.urlparse( url ).netloc, "/" + dir + "/" + UUID + "/control.xml", URN, action, soap_body )
+    return str( upnpd.SOAPCall( urllib_parse.urlparse( url ).scheme + "://" + urllib_parse.urlparse( url ).netloc, "/" + dir + "/" + UUID + "/control.xml", URN, action, soap_body ) )
 
 #calls to the 3 different UPNP server instances
 def contentServerCall(UUID, url, action, soap_body = ""):
@@ -88,7 +91,7 @@ def getActiveConnections(UUID, url):
     return dvdManagerServerCall(UUID, url, "GetActiveConnections")
 
 def getMediaName(UUID, url):
-    r = re.search("<Result>([^<]+)</Result>", dvdManagerServerCall(UUID, url, "GetMediaName"))
+    r = re.search(r"<Result>([^<]+)</Result>", dvdManagerServerCall(UUID, url, "GetMediaName"))
     return r.group(1) if r else ""
 
 def setPlayerRegion(UUID, url, RegionNum = "2"):
@@ -107,4 +110,3 @@ def readDataByFileOffset(UUID, url, FileID = "0/video_ts/video_ts.vob", startSec
     }
 
     return dvdManagerServerCall(UUID, url, "readDataByFileOffset", upnpd.argsXML(args))
-
