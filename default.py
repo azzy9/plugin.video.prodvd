@@ -1,20 +1,12 @@
 import sys, os, re
-import urlparse
 import xbmc,xbmcaddon,xbmcgui,xbmcplugin
-import urllib
+import six
+
+from six.moves import urllib
+from six.moves import urllib_parse
 from lib import telnet_control, upnpd, ProDVD
-from addon.common.addon import Addon
 
 addon_id='plugin.video.prodvd'
-selfAddon = xbmcaddon.Addon(id=addon_id)
-addon = Addon(addon_id, sys.argv)
-addon_name = selfAddon.getAddonInfo('name')
-ADDON      = xbmcaddon.Addon()
-ADDON_PATH = ADDON.getAddonInfo('path')
-ICON       = ADDON.getAddonInfo('icon')
-FANART     = ADDON.getAddonInfo('fanart')
-VERSION    = ADDON.getAddonInfo('version')
-
 device_model = "[ODD] SmartHub 208BW"
 ProDVDServer = False
 
@@ -22,7 +14,7 @@ ProDVDServerTest = False
 #ProDVDServerTest = True
 
 #params being set
-params = dict(urlparse.parse_qsl(sys.argv[2].replace('?','')))
+params = dict(urllib_parse.parse_qsl(sys.argv[2].replace('?','')))
 action = params.get('action')
 fileid = params.get('fileid')
 
@@ -75,7 +67,7 @@ def ProDVD_play( url ):
         dvd_title = ProDVD.getMediaName(UUID, url)
 
         soap = ProDVD.browse(UUID, url)
-        match = re.findall('item(?:\s+)id="(?P<fileid>[^"]+)"(?:(?:.|\n|\r)+?)(?P<url>' + urlparse.urlparse( url ).scheme + "://" + urlparse.urlparse( url ).netloc + '[^"]+.vob)', soap)
+        match = re.findall(r'item(?:\s+)id="(?P<fileid>[^"]+)"(?:(?:.|\n|\r)+?)(?P<url>' + urllib_parse.urlparse( url ).scheme + "://" + urllib_parse.urlparse( url ).netloc + '[^"]+.vob)', soap)
         if match:
             xbmc.log(dvd_title)
             playlist_create(dvd_title, match)
@@ -94,7 +86,7 @@ def playlist_create( dvd_title, list ):
             xbmc.executebuiltin('RunPlugin(%s)' % url)
             return
 
-        playlist.add( urllib.unquote_plus( url ), listitem)
+        playlist.add( urllib.parse.unquote_plus( url ), listitem)
 
     xbmcPlayer = xbmc.Player()
     xbmcPlayer.play(playlist)
@@ -134,8 +126,8 @@ def main():
         #all is fine now, phew
         ProDVD_play(ProDVDServer)
 
-if action == None:
+if action == 'play_file':
+    play_file( urllib.unquote_plus( fileid ) )
+else:
     #let's start
     main()
-elif action == 'play_file':
-    play_file( urllib.unquote_plus( fileid ) )
