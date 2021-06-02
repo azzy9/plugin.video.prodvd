@@ -1,9 +1,9 @@
 import sys, os, re
-import xbmc,xbmcaddon,xbmcgui,xbmcplugin
+import xbmc, xbmcgui
+import binascii, tempfile
 import six
 
 from six.moves import urllib
-from six.moves import urllib_parse
 from lib import telnet_control, upnpd, ProDVD
 
 addon_id='plugin.video.prodvd'
@@ -12,9 +12,10 @@ ProDVDServer = False
 
 ProDVDServerTest = False
 #ProDVDServerTest = True
+ProDVDSectorBuffer = 1000
 
 #params being set
-params = dict(urllib_parse.parse_qsl(sys.argv[2].replace('?','')))
+params = dict( urllib.parse.parse_qsl(sys.argv[2].replace('?','')) )
 action = params.get('action')
 fileid = params.get('fileid')
 
@@ -67,7 +68,7 @@ def ProDVD_play( url ):
         dvd_title = ProDVD.getMediaName(UUID, url)
 
         soap = ProDVD.browse(UUID, url)
-        match = re.findall(r'item(?:\s+)id="(?P<fileid>[^"]+)"(?:(?:.|\n|\r)+?)(?P<url>' + urllib_parse.urlparse( url ).scheme + "://" + urllib_parse.urlparse( url ).netloc + '[^"]+.vob)', soap)
+        match = re.findall(r'item(?:\s+)id="(?P<fileid>[^"]+)"(?:(?:.|\n|\r)+?)(?P<url>' + urllib.parse.urlparse( url ).scheme + "://" + urllib.parse.urlparse( url ).netloc + '[^"]+.vob)', soap)
         if match:
             xbmc.log(dvd_title)
             playlist_create(dvd_title, match)
@@ -107,8 +108,25 @@ def play_file( fileid ):
     else:
         UUID = upnpd.UUIDGet(upnpd.XmlGet(ProDVDServer))
         if UUID != False:
-            sectors = ProDVD.readDataByFileOffset(UUID, ProDVDServer, fileid, "0", "10")
-            xbmc.log(sectors)
+
+            fd, path = tempfile.mkstemp()
+
+            with os.fdopen(fd, 'wb') as tmp:
+
+                for x in range(0, 20):
+                    sectors = ProDVD.readDataByFileOffset(UUID, ProDVDServer, fileid, str( ProDVDSectorBuffer * x ), str( ( ProDVDSectorBuffer * ( x + 1 ) ) - 1 ))
+                    binary_string = binascii.unhexlify(sectors)
+                    # do stuff with temp file
+                    tmp.write(binary_string)
+
+                playlist = xbmc.PlayList(xbmc.PLAYLIST_VIDEO)
+                listitem = xbmcgui.ListItem(fileid)
+                xbmc.log( str( fd ), xbmc.LOGWARNING )
+                xbmc.log( str( path ), xbmc.LOGWARNING )
+                playlist.add( str( path ), listitem)
+                xbmcPlayer = xbmc.Player()
+                xbmcPlayer.play(playlist)
+                #xbmc.log(sectors, xbmc.LOGWARNING)
 
 def main():
     ProDVDServer = ProDVD_find()
@@ -127,7 +145,7 @@ def main():
         ProDVD_play(ProDVDServer)
 
 if action == 'play_file':
-    play_file( urllib.unquote_plus( fileid ) )
+    play_file( urllib.parse.unquote_plus( fileid ) )
 else:
     #let's start
     main()
