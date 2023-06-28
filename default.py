@@ -1,4 +1,5 @@
-""" Main code for running plugin"""
+""" Main code for running plugin """
+
 import sys
 import os
 import re
@@ -8,24 +9,35 @@ import tempfile
 
 import xbmc
 import xbmcgui
+import xbmcplugin
 
 import six
 
 from six.moves import urllib
 from lib import telnet_control, upnpd, ProDVD
+from lib.constants import *
+from lib.general import *
 
-ADDON_ID='plugin.video.prodvd'
-DEVICE_MODEL = "[ODD] SmartHub 208BW"
 PRODVD_SERVER = False
 
-PRODVD_SERVER_TEST = False
-#PRODVD_SERVER_TEST = True
-PRODVD_SECTOR_BUFFER = 1000
+# if we are testing
+PRODVD_SERVER_TEST = ADDON.getSetting('is_testing') == 'true'
+# sector buffer amount
+PRODVD_SECTOR_BUFFER = int( ADDON.getSetting('sector_buffer') )
+
+PLUGIN_ID = int(sys.argv[1])
 
 #params being set
 params = dict( urllib.parse.parse_qsl(sys.argv[2].replace('?','')) )
 action = params.get('action')
 fileid = params.get('fileid')
+
+def main_menu():
+
+    """ The main menu for the plugin """
+
+    xbmcplugin.addDirectoryItem(PLUGIN_ID, build_url({'action':'main'}), xbmcgui.ListItem('Play DVD'), True)
+    xbmcplugin.addDirectoryItem(PLUGIN_ID, build_url({'action':'settings'}), xbmcgui.ListItem('Settings'), True)
 
 def prodvd_start():
 
@@ -100,7 +112,7 @@ def playlist_create( dvd_title, play_list ):
         listitem = xbmcgui.ListItem(dvd_title)
         listitem.setInfo( type="Video", infoLabels={ "Title": dvd_title } )
         if PRODVD_SERVER_TEST is True :
-            url = "plugin://" + ADDON_ID + "/?action=play_file&fileid=" + file_id
+            url = build_url({'action':'play_file', 'fileid':file_id})
             xbmc.executebuiltin('RunPlugin(%s)' % url)
             return
 
@@ -154,6 +166,12 @@ def play_file( file_id ):
                 xbmc_player.play(playlist)
                 #xbmc.log(sectors, xbmc.LOGWARNING)
 
+def settings():
+
+    """ method to open plugin settings """
+
+    ADDON.openSettings()
+
 def main():
 
     """ Main method """
@@ -173,8 +191,12 @@ def main():
         #all is fine now, phew
         prodvd_play(PRODVD_SERVER)
 
-if action == 'play_file':
+if action == 'main':
+    main()
+elif action == 'play_file':
     play_file( urllib.parse.unquote_plus( fileid ) )
+elif action == 'settings':
+    settings()
 else:
     #let's start
-    main()
+    main_menu()

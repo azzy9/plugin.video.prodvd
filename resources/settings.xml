@@ -1,0 +1,6 @@
+<settings>
+    <category label="Debug">
+        <setting id="is_testing" label="Testing" type="bool" default="False"/>
+        <setting id="sector_buffer" label="Sector Buffer" type="number" default="1000"/>
+    </category>
+</settings>
