@@ -1,8 +1,10 @@
-""" Telnet control methods """
+# -*- coding: utf-8 -*-
 import xbmc
 import telnetlib
 
 class telnet_control:
+
+    """ Telnet control methods """
 
     def __init__(self, host=None, port=0):
 

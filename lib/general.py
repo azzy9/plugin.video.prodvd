@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 import six
 from six.moves import urllib_parse
 

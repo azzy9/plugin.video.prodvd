@@ -1,5 +1,4 @@
-""" Main code for running plugin """
-
+# -*- coding: utf-8 -*-
 import sys
 import os
 import re

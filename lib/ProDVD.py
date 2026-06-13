@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 #ProDVD - methods to make SOAP calls to the ProDVD UPNP servers
 
 import re
