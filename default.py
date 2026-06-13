@@ -123,7 +123,7 @@ def playlist_create( dvd_title, play_list ):
 
 def play_file( file_id ):
 
-    """ Play Files (test) """
+    """ Play File (test) """
 
     xbmc.log("Play File Test Start")
 
@@ -137,7 +137,7 @@ def play_file( file_id ):
         PRODVD_SERVER = prodvd_find(3)
 
     if PRODVD_SERVER is False:
-        #oh no!
+        # There is no server found
         xbmc.log("ProDVD server can not be found / started")
     else:
         uuid = upnpd.UUIDGet(upnpd.XmlGet(PRODVD_SERVER))
@@ -150,8 +150,8 @@ def play_file( file_id ):
                 for b_num in range(0, 20):
                     sectors = ProDVD.readDataByFileOffset(
                         uuid, PRODVD_SERVER, file_id,
-                        str( PRODVD_SECTOR_BUFFER * b_num ),
-                        str( ( PRODVD_SECTOR_BUFFER * ( b_num + 1 ) ) - 1 )
+                        PRODVD_SECTOR_BUFFER * b_num,
+                        ( ( PRODVD_SECTOR_BUFFER * ( b_num + 1 ) ) - 1 )
                     )
                     binary_string = binascii.unhexlify(sectors)
                     # do stuff with temp file

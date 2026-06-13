@@ -1,13 +1,16 @@
 #ProDVD - methods to make SOAP calls to the ProDVD UPNP servers
 
-import six, re
+import re
+import six
 
 from lib import upnpd
 from six.moves import urllib
 
-#make the SOAP call to the server
-def serverCall(UUID, url, dir, URN, action, soap_body = ""):
-    return str( upnpd.SOAPCall( urllib.parse.urlparse( url ).scheme + "://" + urllib.parse.urlparse( url ).netloc, "/" + dir + "/" + UUID + "/control.xml", URN, action, soap_body ) )
+def serverCall(UUID, url, media_dir, URN, action, soap_body = ""):
+
+    """ make the SOAP call to the server """
+
+    return str( upnpd.SOAPCall( urllib.parse.urlparse( url ).scheme + "://" + urllib.parse.urlparse( url ).netloc, "/" + media_dir + "/" + UUID + "/control.xml", URN, action, soap_body ) )
 
 #calls to the 3 different UPNP server instances
 def contentServerCall(UUID, url, action, soap_body = ""):
@@ -50,7 +53,7 @@ def search(UUID, url):
         "Filter": "",
         "StartingIndex": "0",
         "RequestedCount": "0",
-        "SortCriteria": ""
+        "SortCriteria": "",
     }
 
     return contentServerCall(UUID, url, "Search", upnpd.argsXML(args))
@@ -74,7 +77,7 @@ def getFileLocation(UUID, url, FileID = "0/video_ts/video_ts.vob"):
     args = {
         "FileID": FileID
     }
- 
+
     r = re.search(r"<Result>([^<]+)</Result>", dvdManagerServerCall(UUID, url, r"GetFileLocation", upnpd.argsXML(args)))
     return r.group(1) if r else ""
 
@@ -87,36 +90,55 @@ def getTitleKey(UUID, url, FileID = "0/video_ts/video_ts.vob"):
     return r.group(1) if r else ""
 
 def getPlayerRegion(UUID, url):
+
+    """ Method to get the device's set region """
+
     r = re.search(r"<Result>R:([^<]+)\s+C:(?:[0-9])</Result>", dvdManagerServerCall(UUID, url, r"GetPlayerRegion"))
     region_text = r.group(1) if r else False
+
     if region_text:
         #reverse, turn it into a int, then count the amount of 0's it has, add 1 to get it's region
         return str(int( region_text.replace(",", "")[::-1] )).count('0') + 1
-    else:
-        return 0
 
-def getActiveConnections(UUID, url):
-    return dvdManagerServerCall(UUID, url, r"GetActiveConnections")
-
-def getMediaName(UUID, url):
-    r = re.search(r"<Result>([^<]+)</Result>", dvdManagerServerCall(UUID, url, r"GetMediaName"))
-    return r.group(1) if r else ""
+    return 0
 
 def setPlayerRegion(UUID, url, RegionNum = "2"):
+
+    """
+    method to set player region
+    player will need to be hard reset after limit is reached
+    """
+
     args = {
         "RegionNum": RegionNum
     }
 
     return dvdManagerServerCall(UUID, url, r"SetPlayerRegion", upnpd.argsXML(args))
 
-#this is the method we need to look at to get the dvd's data
-def readDataByFileOffset(UUID, url, FileID = "0/video_ts/video_ts.vob", startSector = "0", endSector = "2"):
+def getActiveConnections(UUID, url):
+    return dvdManagerServerCall(UUID, url, r"GetActiveConnections")
+
+def getMediaName(UUID, url):
+
+    """ Get DVD's Name """
+
+    r = re.search(r"<Result>([^<]+)</Result>", dvdManagerServerCall(UUID, url, r"GetMediaName"))
+    return r.group(1) if r else ""
+
+def readDataByFileOffset(UUID, url, file_id = "0/video_ts/video_ts.vob", start_sector = 0, end_ector = 10000):
+
+    """ the method we need to look at to get the dvd's data """
+
     args = {
-        "FileID": FileID,
-        "startSector": startSector,
-        "endSector": endSector
+        "FileID": file_id,
+        "startSector": str(start_sector),
+        "endSector": str(end_ector),
     }
 
-    r = re.search(r"<Result>(?:[0-9]):([^<]+)</Result>", dvdManagerServerCall(UUID, url, r"readDataByFileOffset", upnpd.argsXML(args)))
+    r = re.search(
+        r"<Result>(?:[0-9]):([^<]+)</Result>",
+        dvdManagerServerCall(UUID, url, r"readDataByFileOffset", upnpd.argsXML(args))
+    )
+
     #just testing??? maybe 000001ba440004 is used to seperate sectors
     return r.group(1).replace( "000001ba440004", "" ) if r else ""
