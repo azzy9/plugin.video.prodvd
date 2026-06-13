@@ -31,6 +31,8 @@ params = dict( urllib.parse.parse_qsl(sys.argv[2].replace('?','')) )
 action = params.get('action')
 fileid = params.get('fileid')
 
+LOG_TYPE = xbmc.LOGWARNING if PRODVD_SERVER_TEST else xbmc.LOGDEBUG
+
 def main_menu():
 
     """ The main menu for the plugin """
@@ -46,10 +48,10 @@ def prodvd_start():
     PRODVD_SERVER = False
 
     #use SDPP to find a server to start
-    xbmc.log("Starting UPNP search")
+    xbmc.log("Starting UPNP search", LOG_TYPE)
     upnp_found = upnpd.discover("urn:schemas-upnp-org:device:MediaServer")
 
-    xbmc.log("Looping Results")
+    xbmc.log("Looping Results", LOG_TYPE)
     if upnp_found:
         for upnp in upnp_found:
             #not sure if I like how it is doing this, but it work
@@ -74,7 +76,7 @@ def prodvd_find( retries=1 ):
     upnp_found = upnpd.discover("urn:schemas-upnp-org:service:ProDVDContentDirectory:1", 5, retries)
 
     if upnp_found:
-        xbmc.log("ProDVD server found")
+        xbmc.log("ProDVD server found", LOG_TYPE)
         for upnp in upnp_found:
             xbmc.log(upnp.location)
             return upnp.location
@@ -95,9 +97,9 @@ def prodvd_play( url ):
                            + urllib.parse.urlparse( url ).scheme
                            + "://" + urllib.parse.urlparse( url ).netloc + '[^"]+.vob)', soap)
         if match:
-            xbmc.log(dvd_title)
+            xbmc.log(dvd_title, LOG_TYPE)
             playlist_create(dvd_title, match)
-            xbmc.log("ProDVD_play RAN!!!!!!")
+            xbmc.log("ProDVD_play RAN!", LOG_TYPE)
 
     return uuid
 
@@ -124,7 +126,7 @@ def play_file( file_id ):
 
     """ Play File (test) """
 
-    xbmc.log("Play File Test Start")
+    xbmc.log("Play File Test Start", LOG_TYPE)
 
     PRODVD_SERVER = prodvd_find()
 
@@ -137,7 +139,7 @@ def play_file( file_id ):
 
     if PRODVD_SERVER is False:
         # There is no server found
-        xbmc.log("ProDVD server can not be found / started")
+        xbmc.log("ProDVD server can not be found / started", LOG_TYPE)
     else:
         uuid = upnpd.UUIDGet(upnpd.XmlGet(PRODVD_SERVER))
         if uuid is not False:
@@ -185,7 +187,7 @@ def main():
         PRODVD_SERVER = prodvd_find(3)
     if PRODVD_SERVER is False:
         #oh no!
-        xbmc.log("ProDVD server can not be found / started")
+        xbmc.log("ProDVD server can not be found / started", LOG_TYPE)
     else:
         #all is fine now, phew
         prodvd_play(PRODVD_SERVER)
