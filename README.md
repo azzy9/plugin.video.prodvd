@@ -9,7 +9,7 @@ As the Network DVD drive is obsolete there is no real up to date method to play 
 It may work with other devices that run an instance of the ProDVD server, but a few modifications may be needed.
 
 <b>What is ProDVD?</b><br />
-ProDVD (http://www.prodvd.net) is an old method to play DVD’s over UPNP.
+ProDVD (https://www.prodvd.net) is an old method to play DVD’s over UPNP.
 
 <b>I use this and it buffers and it freezes for a second after a while?</b><br />
 Unfortunately, this works by creating a playlist of the .vob files and when it changes from one file to another, it will freeze for a second while it tries to run a new file. As far as I know Kodi does not offer a way to precache the next file.
