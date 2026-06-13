@@ -142,5 +142,4 @@ def readDataByFileOffset(UUID, url, file_id = "0/video_ts/video_ts.vob", start_s
         dvdManagerServerCall(UUID, url, r"readDataByFileOffset", upnpd.argsXML(args))
     )
 
-    #just testing??? maybe 000001ba440004 is used to seperate sectors
-    return r.group(1).replace( "000001ba440004", "" ) if r else ""
+    return r.group(1)

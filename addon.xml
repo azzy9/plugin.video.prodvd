@@ -3,10 +3,13 @@
     <requires>
         <import addon="script.module.requests"/>
         <import addon="script.module.six"/>
+        <import addon="xbmc.webinterface" version="1.0.0"/>
+        <import addon="script.module.bottle" version="0.12.8"/>
     </requires>
     <extension point="xbmc.python.pluginsource" library="default.py">
         <provides>video</provides>
     </extension>
+    <extension point="xbmc.webinterface" type="wsgi" library="server.py" entry="app" start="startup"/>
     <extension point="xbmc.addon.metadata">
         <summary lang="en">Video</summary>
         <description lang="en">Player for the Samsung SE-208BW ProDVD server</description>
