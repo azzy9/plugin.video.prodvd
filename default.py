@@ -40,6 +40,8 @@ def main_menu():
     xbmcplugin.addDirectoryItem(PLUGIN_ID, build_url({'action':'main'}), xbmcgui.ListItem('Play DVD'), True)
     xbmcplugin.addDirectoryItem(PLUGIN_ID, build_url({'action':'settings'}), xbmcgui.ListItem('Settings'), True)
 
+    xbmcplugin.endOfDirectory(PLUGIN_ID)
+
 def prodvd_start():
 
     """ method to start a ProDVD server """
