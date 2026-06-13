@@ -59,10 +59,10 @@ def prodvd_start():
                 PRODVD_SERVER = upnp.domain
                 break
 
-    if PRODVD_SERVER is not False:
+    if PRODVD_SERVER is not False and TELNET_ENABLED:
         #start the server
         tnc = telnet_control.telnet_control(PRODVD_SERVER, 23)
-        tnc.login("root")
+        tnc.login( TELNET_USER, TELNET_PASSWORD )
         #start the UPNP ProDVD server
         tnc.server_start()
         tnc.exit()

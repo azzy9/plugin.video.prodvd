@@ -1,4 +1,9 @@
 <settings>
+    <category label="Telnet">
+        <setting id="telnet_enabled" label="Enabled" type="bool" default="True"/>
+        <setting id="telnet_user" label="User" type="text" default="root" visible="eq(-1,true)" />
+        <setting id="telnet_password" label="Password" type="text" default="" option="hidden" visible="eq(-2,true)" />
+    </category>
     <category label="Debug">
         <setting id="is_testing" label="Testing" type="bool" default="False"/>
         <setting id="sector_buffer" label="Sector Buffer" type="number" default="1000"/>
